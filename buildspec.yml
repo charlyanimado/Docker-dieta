@@ -1,0 +1,36 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      # 1. Obtenemos el ID de nuestra cuenta y la región
+      - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - AWS_REGION=$(aws configure get region)
+      
+      # 2. !! IMPORTANTE !!
+      # Asegúrate de que 'app-mamadisima' coincida con el nombre de tu repositorio ECR
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/docker-optimizado
+      
+      # 3. Nos logueamos en ECR
+      - echo "Iniciando sesión en ECR..."
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+      
+      # 4. Definimos un tag para la imagen (los primeros 7 caracteres del hash del commit)
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+
+  build:
+    commands:
+      # 5. ¡¡AQUÍ ESTÁ LA LÍNEA MÁGICA!!
+      # Le decimos que use el Dockerfile correcto
+      - echo "Construyendo la imagen app-mamadisima..."
+      - docker build -t $REPOSITORY_URI:latest -f Dockerfile.optimizado .
+      
+      # 6. Le ponemos el tag del commit también
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+
+  post_build:
+    commands:
+      # 7. Subimos ambas tags a ECR
+      - echo "Subiendo imágenes a ECR..."
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
