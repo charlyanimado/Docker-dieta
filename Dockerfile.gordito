@@ -1,0 +1,13 @@
+# Dockerfile.gordito
+
+# 1. Usamos la imagen base completa de Nginx (basada en Debian)
+# Esta imagen pesa alrededor de ~180MB. Es "gordita" para 
+# solo servir un par de archivos HTML.
+FROM nginx:latest
+
+# 2. Copiamos TODO el contenido de tu proyecto
+# a la carpeta donde Nginx sirve los archivos HTML.
+COPY . /usr/share/nginx/html
+
+# 3. (Opcional) Exponemos el puerto 80 (Nginx lo hace por defecto)
+EXPOSE 80

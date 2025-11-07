@@ -1,0 +1,12 @@
+# Dockerfile.optimizado
+
+# 1. Usamos la imagen 'alpine' de Nginx.
+# Esta imagen pesa ~40MB en lugar de ~180MB.
+# ¡Es el mismo Nginx, pero sin el S.O. Debian!
+FROM nginx:alpine
+
+# 2. Copiamos exactamente los mismos archivos
+COPY . /usr/share/nginx/html
+
+# 3. Exponemos el puerto
+EXPOSE 80
